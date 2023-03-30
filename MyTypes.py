@@ -6,7 +6,11 @@ SpotData = namedtuple('SpotData', ['currency', 'open_date', 'buy_price', 'amount
 
 commands = ['1. Go to futures diary', '2. Go to spot diary.', '3. Analysis menu.', 'x - exit.']
 
+spot_manager_commands = ['1. Show data options.', '2. Add new trade.', '3. Close trade.', 'x - go to previous menu']
+
 manager_commands = ['1. Show data options.', '2. Add new trade.', '3. Close trade.', '4. Show PNL data options.','x - go to previous menu']
+
+print_spot_commands = ['1. Print all.', '2. By profit descending','3. By profit ascending', '4. Open positions.', '5. Closed positions.', 'x - go to previous menu']
 
 print_commands = ['1. Print all.', '2. By PNL descending.', '3. By PNL ascending.', '4. Open positions.', '5. Closed positions.', 'x - go to previous menu']
 
