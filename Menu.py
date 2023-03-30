@@ -60,7 +60,7 @@ def print_spot_show(manager):
 def futures_manager_comands(manager):
     while(True):
         print('Chose option, type number:')
-        for a in commands:
+        for a in manager_commands:
             print(a)
         com = input()
         print(com)

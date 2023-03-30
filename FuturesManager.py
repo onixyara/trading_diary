@@ -43,38 +43,19 @@ class FuturesManager:
 
     def print_available_trades(self):
         available_trades = [trade for trade in self.trades if trade.close_date == '-']
+        table_data = []
         for i, trade in enumerate(available_trades):
-            print(f"{i+1}. {trade}")
-    
+            table_data.append([i+1, trade.currency, trade.open_date, trade.open_time, trade.long_short, trade.pnl, trade.close_date, trade.close_time])
+        print(tabulate(table_data, headers=[ "Number", "Currency", "Open Date", "Open Time", "Long/Short", "PNL", "Close Date", "Close Time"], tablefmt="fancy_grid", numalign="right", stralign="right", floatfmt=".2f"))
+ 
     def close_trade(self):
-        open_trades = [t for t in self.trades if t.close_date == '-']
-        if len(open_trades) == 0:
-            print("There are no open trades to close.")
-            return
-        print("Open Trades:")
-        headers = ['Number', 'Currency']
-        rows = []
-        for i, trade in enumerate(open_trades):
-            rows.append([str(i+1), trade.currency])
-        print(tabulate(rows, headers=headers, tablefmt='grid'))
-        while True:
-            try:
-                trade_num = input("Enter the number of the trade to close (x to cancel): ")
-                if trade_num.lower() == 'x':
-                    return
-                trade_num = int(trade_num)
-                if trade_num < 1 or trade_num > len(open_trades):
-                    raise ValueError
-                break
-            except ValueError:
-                print("Invalid input. Please enter a valid trade number.")
-        trade_to_close = open_trades[trade_num-1]
-        pnl = input("Enter the P&L for the trade: ")
-        close_date = input("Enter the close date for the trade (dd.mm): ")
-        close_time = input("Enter the close time for the trade (hh:mm): ")
-        trade_to_close = trade_to_close._replace(pnl=pnl, close_date=close_date, close_time=close_time)
-        print("Trade closed successfully.")
-        self.write_to_json()
+        self.print_available_trades()
+        trade_index = int(input("Enter the number of the trade to close: ")) - 1
+        trade = [t for t in self.trades if t.close_date == '-'][trade_index]
+        pnl = input("Enter the P&L: ")
+        close_date = input("Enter the close date: ")
+        close_time = input("Enter the close time: ")
+        self.trades[self.trades.index(trade)] = trade._replace(pnl=pnl, close_date=close_date, close_time=close_time)
     
     def print_open_positions(self):
         open_trades = [t for t in self.trades if t.close_date == '-']
