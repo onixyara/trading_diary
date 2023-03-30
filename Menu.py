@@ -24,22 +24,38 @@ def analysis_menu():
 def spot_manager_comands(manager):
     while(True):
         print('Chose option, type number:')
-        for a in manager_commands:
+        for a in spot_manager_commands:
             print(a)
         com = input()
         print(com)
         if com == 'x':
             break
         if com == '1':
-            print_options_show(manager)
+            print_spot_show(manager)
         elif com == '2':
             manager.add_trade()
         elif com == '3':
             manager.close_trade()
-        elif com == '4':
-            show_pnl_options(manager)
         else:
             print('Wrong input.')
+
+def print_spot_show(manager):
+    while(True):
+        for b in print_spot_commands:
+            print(b)
+        com = input()
+        if com == '1':
+            manager.print_all()
+        elif com == '2':
+            manager.print_sorted_by_profit_descending()
+        elif com == '3':
+            manager.print_sorted_by_profit_ascending()
+        elif com == '4':
+            manager.print_open_positions()
+        elif com == '5':
+            manager.print_closed_positions()
+        elif com == 'x':
+            break
 
 def futures_manager_comands(manager):
     while(True):

@@ -1,18 +1,14 @@
-from collections import namedtuple
-import json
-from typing import List
-from collections import namedtuple
-from datetime import datetime
 import json
 from tabulate import tabulate
 from termcolor import colored
-
-SpotData = namedtuple('SpotData', ['currency', 'open_date', 'buy_price', 'amount', 'sell_price', 'profit', 'close_date'])
+from MyTypes import *
 
 class SpotManager:
+    SpotData = namedtuple('SpotData', ['currency', 'open_date', 'buy_price', 'amount', 'sell_price', 'profit', 'close_date'])
+
     def __init__(self, file_path):
         self.file_path = file_path
-        self.spot_data = []
+        self.spots = []
         self.read_from_json()
 
     def __del__(self):
@@ -20,73 +16,107 @@ class SpotManager:
 
     def read_from_json(self):
         try:
-            with open(self.file_path) as file:
-                data = json.load(file)
-                self.spot_data = [SpotData(**t) for t in data]
-        except FileNotFoundError:
-            pass
+            with open(self.file_path, 'r') as f:
+                data = json.load(f)
+                self.spots = [self.SpotData(spot_dict['currency'], spot_dict['open_date'], spot_dict['buy_price'], spot_dict['amount'],
+                                            spot_dict['sell_price'], spot_dict['profit'], spot_dict['close_date'])
+                              for spot_dict in data]
+        except (FileNotFoundError, json.JSONDecodeError):
+            print(f"Could not read data from {self.file_path}. Starting with empty list.")
+
 
     def save_to_json(self):
-        with open(self.file_path, 'w') as file:
-            json.dump([t._asdict() for t in self.spot_data], file, indent=4, sort_keys=True)
+        with open(self.file_path, 'w') as f:
+            data = [spot._asdict() for spot in self.spots]
+            json.dump(data, f, default=str, indent=4)
 
     def add_trade(self):
-        currency = input("Enter currency: ")
-        open_date = input("Enter open date (YYYY-MM-DD): ")
-        buy_price = float(input("Enter buy price: "))
-        amount = float(input("Enter amount: "))
-        spot_trade = SpotData(currency=currency, open_date=open_date, buy_price=buy_price, amount=amount,
-                              sell_price=0, profit=0, close_date='-')
-        self.spot_data.append(spot_trade)
-
-    def close_trade(self):
-        for i, trade in enumerate(self.spot_data):
-            if trade.close_date == '-':
-                print(f"{i}. {trade.currency} - {trade.amount} {trade.currency} @ {trade.buy_price}")
-        index = int(input("Select trade to close: "))
-        trade = self.spot_data[index]
-        sell_price = float(input("Enter sell price: "))
-        profit = (sell_price - trade.buy_price) * trade.amount
-        trade = trade._replace(sell_price=sell_price, profit=profit, close_date=input("Enter close date (YYYY-MM-DD): "))
-        self.spot_data[index] = trade
-
-    def print_all(self):
-        for i, trade in enumerate(self.spot_data):
-            buy_sell_diff = trade.sell_price - trade.buy_price
-            pnl_colored = colored(f"{trade.profit:+.2f}", 'green' if trade.profit >= 0 else 'red')
-            if buy_sell_diff < 0:
-                bs_diff_colored = colored(f"{buy_sell_diff:+.2f}", 'red')
-            else:
-                bs_diff_colored = f"{buy_sell_diff:.2f}"
-            print(f"{i}. {trade.currency}\t{trade.open_date}\t{trade.buy_price:.2f}\t{trade.amount}\t{trade.sell_price:.2f}\t{bs_diff_colored}\t{pnl_colored}\t{trade.close_date}")
-
-    def print_sorted_by_pnl(self):
-        sorted_spots = sorted(self.spots, key=lambda spot: spot.profit or 0, reverse=True)
-        table_data = [[i+1, spot.currency, spot.open_date.strftime('%d.%m.%Y'), spot.buy_price, spot.amount,
-                       spot.sell_price or "-", spot.close_date.strftime('%d.%m.%Y') if spot.close_date else "-",
-                       spot.profit or "-"] for i, spot in enumerate(sorted_spots)]
-
-        headers = ["#", "Currency", "Open Date", "Buy Price", "Amount", "Sell Price", "Close Date", "Profit"]
-        print(tabulate(table_data, headers=headers))
-
-    def print_sorted_by_pnl_low_to_high(self):
-        sorted_spots = sorted(self.spots, key=lambda spot: spot.profit or 0)
-        table_data = [[i+1, spot.currency, spot.open_date.strftime('%d.%m.%Y'), spot.buy_price, spot.amount,
-                       spot.sell_price or "-", spot.close_date.strftime('%d.%m.%Y') if spot.close_date else "-",
-                       spot.profit or "-"] for i, spot in enumerate(sorted_spots)]
-
-        headers = ["#", "Currency", "Open Date", "Buy Price", "Amount", "Sell Price", "Close Date", "Profit"]
-        print(tabulate(table_data, headers=headers))
+        currency = input('Enter currency: ')
+        open_date = input('Enter open date: ')
+        buy_price = float(input('Enter buy price: '))
+        amount = float(input('Enter amount: '))
+        sell_price = 0
+        close_date = ''
+        profit = 0
+        new_trade = SpotData(currency, open_date, buy_price, amount, sell_price, profit, close_date)
+        self.spots.append(new_trade)
+        self.save_to_json()
+        print('New trade added successfully.')
 
     def print_open_positions(self):
-        table_data = [[i+1, spot.currency, spot.open_date.strftime('%d.%m.%Y'), spot.buy_price, spot.amount]
-                      for i, spot in enumerate(self.spots) if spot.close_date is None]
+        table = []
+        for i, trade in enumerate(self.spots):
+            if not trade.close_date:
+                if trade.profit and trade.profit > 0:
+                    pnl_colored = colored(str(trade.profit), "green")
+                elif trade.profit and trade.profit < 0:
+                    pnl_colored = colored(str(trade.profit), "red")
+                else:
+                    pnl_colored = "-"
+                table.append([i+1, trade.currency, trade.open_date, trade.buy_price, trade.amount, pnl_colored])
+        headers = ["#", "Currency", "Open Date", "Buy Price", "Amount", "Profit"]
+        print(tabulate(table, headers, tablefmt="fancy_grid", numalign="center"))
 
-        headers = ["#", "Currency", "Open Date", "Buy Price", "Amount"]
-        print(tabulate(table_data, headers=headers))
+    def close_trade(self):
+        self.print_open_positions()
+        trade_index = input("Enter the number of the trade to close: ")
+        try:
+            trade_index = int(trade_index)
+            trade = self.spots[trade_index - 1]
+            if trade.close_date != '':
+                print(f"Trade {trade_index} already closed on {trade.close_date}")
+                return
+            sell_price = float(input("Enter the sell price for the trade: "))
+            close_date = input("Enter the close date for the trade (in format dd.mm): ")
+            profit = ((trade.amount / trade.buy_price) * sell_price) - trade.amount
+            trade = trade._replace(close_date=close_date, sell_price=sell_price, profit=profit)
+            self.spots[trade_index - 1] = trade
+            self.save_to_json()
+            print(f"Trade {trade_index} closed successfully.")
+        except (IndexError, ValueError):
+            print("Invalid input. Please try again.")
     
+    def print_all(self):
+        headers = ['Currency', 'Open Date', 'Buy Price', 'Amount', 'Sell Price', 'Profit', 'Close Date']
+        rows = []
+        for spot in self.spots:
+            row = [spot.currency, spot.open_date, spot.buy_price, spot.amount, spot.sell_price, spot.profit, spot.close_date]
+            if spot.sell_price is None:
+                row[4] = colored('Open', 'green')
+                row[5] = colored('Open', 'green')
+            elif spot.profit < 0:
+                row[4] = colored(row[4], 'red')
+                row[5] = colored(row[5], 'red')
+            else:
+                row[4] = colored(row[4], 'green')
+                row[5] = colored(row[5], 'green')
+            rows.append(row)
+        print(tabulate(rows, headers=headers, tablefmt='fancy_grid'))
+    
+    def print_sorted_by_profit_descending(self):
+        sorted_spots = sorted(self.spots, key=lambda x: x.profit, reverse=True)
+        headers = ["Currency", "Open Date", "Buy Price", "Amount", "Sell Price", "Profit", "Close Date"]
+        table = []
+        for spot in sorted_spots:
+            color = 'green' if spot.profit >= 0 else 'red'
+            row = [spot.currency, spot.open_date, spot.buy_price, spot.amount, spot.sell_price, colored(spot.profit, color), spot.close_date]
+            table.append(row)
+        print(tabulate(table, headers=headers, tablefmt="fancy_grid"))
+    
+    def print_sorted_by_profit_ascending(self):
+        spots_sorted = sorted(self.spots, key=lambda x: x.profit)
+        table = []
+        for i, spot in enumerate(spots_sorted):
+            color = "red" if spot.profit < 0 else "green"
+            table.append([i+1, spot.currency, spot.open_date, spot.buy_price, spot.amount, spot.sell_price, spot.profit, spot.close_date, colored(spot.profit, color)])
+        print(tabulate(table, headers=["No.", "Currency", "Open Date", "Buy Price", "Amount", "Sell Price", "Profit", "Close Date", "Profit Color"], tablefmt="fancy_grid"))
+
     def print_closed_positions(self):
-        table_data = [[i+1, spot.currency, spot.open_date.strftime('%d.%m.%Y'), spot.buy_price, spot.amount,
-                       spot.sell_price, spot.close_date.strftime('%d.%m.%Y'), spot.profit] for i, spot in enumerate(self.spots) if spot.close_date]
-        headers = ["#", "Currency", "Open Date", "Buy Price", "Amount", "Sell Price", "Close Date", "Profit"]
-        print(tabulate(table_data, headers=headers))
+        headers = ['Currency', 'Open Date', 'Buy Price', 'Amount', 'Sell Price', 'Profit', 'Close Date']
+        rows = []
+        for spot in self.spots:
+            if spot.close_date != '':
+                pnl_color = 'green' if spot.profit >= 0 else 'red'
+                row = [spot.currency, spot.open_date, spot.buy_price, spot.amount, spot.sell_price, colored(spot.profit, pnl_color), spot.close_date]
+                rows.append(row)
+        print(tabulate(rows, headers=headers, tablefmt='fancy_grid', numalign='center', stralign='center'))
