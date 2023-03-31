@@ -1,6 +1,7 @@
 from TradingManager import *
 from MyTypes import *
 import json
+import os
 
 def start_mnanager():
     manager = TradingManager('/Users/vladyslavonishchuk/Study/Projects/python/TraidingDiary/Futures_March.json', '/Users/vladyslavonishchuk/Study/Projects/python/TraidingDiary/Spot_March.json')
@@ -9,6 +10,7 @@ def start_mnanager():
         for a in commands:
             print(a)
         com = input()
+        print("\033c\033[3J")
         if com == '1':
             futures_manager_comands(manager.futures_manager)
         elif com == '2':
@@ -27,6 +29,7 @@ def spot_manager_comands(manager):
         for a in spot_manager_commands:
             print(a)
         com = input()
+        print("\033c\033[3J")
         print(com)
         if com == 'x':
             break
@@ -44,6 +47,7 @@ def print_spot_show(manager):
         for b in print_spot_commands:
             print(b)
         com = input()
+        print("\033c\033[3J")
         if com == '1':
             manager.print_all()
         elif com == '2':
@@ -63,6 +67,7 @@ def futures_manager_comands(manager):
         for a in manager_commands:
             print(a)
         com = input()
+        print("\033c\033[3J")
         print(com)
         if com == 'x':
             break
@@ -82,6 +87,8 @@ def show_pnl_options(manager):
         for b in print_pnl_comands:
             print(b)
         com = input()
+        print("\033c\033[3J")
+
         if com == '1':
             manager.accumulate_pnl()
         elif com == '2':
@@ -90,6 +97,8 @@ def show_pnl_options(manager):
             manager.print_pnl_summary()
         elif com == '4':
             manager.print_pnl_percent()
+        elif com == '5':
+            manager.print_pnl_weighted_average()
         elif com == 'x':
             break
 
@@ -98,6 +107,7 @@ def print_options_show(manager):
         for b in print_commands:
             print(b)
         com = input()
+        print("\033c\033[3J")
         if com == '1':
             manager.print_all()
         elif com == '2':

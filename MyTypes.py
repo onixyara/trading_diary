@@ -14,4 +14,4 @@ print_spot_commands = ['1. Print all.', '2. By profit descending','3. By profit 
 
 print_commands = ['1. Print all.', '2. By PNL descending.', '3. By PNL ascending.', '4. Open positions.', '5. Closed positions.', 'x - go to previous menu']
 
-print_pnl_comands = ['1. Acumulated PNL.', '2. Trades percentage.', '3. PNL summary.', '4. PNL to balance percentage.', 'x - go to previous menu']
+print_pnl_comands = ['1. Acumulated PNL.', '2. Trades percentage.', '3. PNL summary.', '4. PNL to balance percentage.', '5. Weighted avarage PNL.', 'x - go to previous menu']

@@ -156,10 +156,33 @@ class FuturesManager:
         closed_trades = [t for t in self.trades if t.close_date != '-']
         pnl_sum = sum([float(t.pnl) for t in closed_trades])
         pnl_percent = pnl_sum / self.my_balance * 100
-        pnl_percent_colored = colored(f"P&L as % of balance: {pnl_percent:.2f}%", 'green' if pnl_sum >= 0 else 'red')
+        pnl_percent_colored = colored(f"Total pnl to main acc: {pnl_percent:.2f}%", 'green' if pnl_sum >= 0 else 'red')
         print('\n\n----------------------------------------')
         print(pnl_percent_colored)
         print('----------------------------------------\n\n')
+
+    def print_pnl_weighted_average(self):
+        closed_trades = [trade for trade in self.trades if trade.close_date != '-']
+        total_pnl = sum(float(trade.pnl) for trade in closed_trades)
+        total_amount = sum(float(trade.amount) for trade in closed_trades)
+        if total_amount != 0:
+            pnl_weighted_avg = total_pnl / total_amount
+            if pnl_weighted_avg > 0:
+                color = '\033[92m'  # green color
+            else:
+                color = '\033[91m'  # red color
+            percentage = pnl_weighted_avg * 100
+            if percentage > 0:
+                percentage_color = '\033[92m'  # green color
+            else:
+                percentage_color = '\033[91m'  # red color
+            print('\n\n----------------------------------------')
+            print(f"PNL Weighted Average: {color}{pnl_weighted_avg:.2f} ({percentage_color}{percentage:.2f}%\033[0m)")
+            print('----------------------------------------\n\n')
+        else:
+            print('\n\n----------------------------------------')
+            print("No closed trades found.")
+            print('----------------------------------------\n\n')
 
     def __del__(self):
         self.save_to_json()
