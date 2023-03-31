@@ -1,7 +1,5 @@
 from TradingManager import *
 from MyTypes import *
-import json
-import os
 
 def start_mnanager():
     manager = TradingManager('/Users/vladyslavonishchuk/Study/Projects/python/TraidingDiary/Futures_March.json', '/Users/vladyslavonishchuk/Study/Projects/python/TraidingDiary/Spot_March.json')
